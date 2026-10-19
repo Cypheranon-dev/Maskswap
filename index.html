@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mask Swap — Private Cypher Swaps</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body { background: #05070d; color: #e8e6e1; font-family: system-ui, sans-serif; }
+    .glass { background: rgba(10, 12, 20, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(240, 118, 42, 0.2); }
+    .accent { color: #f0762a; }
+    .btn-primary { background: linear-gradient(135deg, #f0762a, #ff8a3d); color: #05070d; }
+    .btn-primary:hover { background: #ff8a3d; }
+    .pair-card { background: rgba(28, 61, 50, 0.4); border: 1px solid rgba(143, 217, 182, 0.15); }
+    .private-badge { background: #1c3d32; color: #8fd9b6; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+  <div class="max-w-md mx-auto px-4 py-6">
+    <header class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 mb-1">
+        <i class="fa-solid fa-exchange-alt text-2xl accent"></i>
+        <h1 class="text-2xl font-bold">Mask Swap</h1>
+      </div>
+      <p class="text-xs text-gray-500">Private swaps powered by Cypher • Works with Mask Wallet</p>
+    </header>
+
+    <div class="glass rounded-2xl p-5 mb-4">
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-sm font-medium">Private Swap</span>
+        <span class="private-badge text-xs px-2 py-1 rounded-full">Shielded</span>
+      </div>
+
+      <!-- From -->
+      <div class="pair-card rounded-xl p-4 mb-3">
+        <div class="flex justify-between text-xs text-gray-400 mb-1">
+          <span>You pay</span>
+          <span id="from-balance">Balance: 0.00</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="from-asset" class="bg-transparent text-lg font-semibold outline-none">
+            <option value="ETH">ETH</option>
+            <option value="BTC">BTC</option>
+            <option value="SOL">SOL</option>
+            <option value="ZEC">ZEC</option>
+            <option value="CYP">Cypher (CYP)</option>
+          </select>
+          <input id="from-amt" type="number" step="0.0001" placeholder="0.00" class="flex-1 bg-transparent text-right text-xl outline-none" />
+        </div>
+      </div>
+
+      <div class="text-center my-2">
+        <button id="switch" class="w-8 h-8 rounded-full border border-gray-700 hover:border-accent text-sm">⇅</button>
+      </div>
+
+      <!-- To -->
+      <div class="pair-card rounded-xl p-4 mb-4">
+        <div class="flex justify-between text-xs text-gray-400 mb-1">
+          <span>You receive</span>
+          <span id="to-balance">Balance: 0.00</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="to-asset" class="bg-transparent text-lg font-semibold outline-none">
+            <option value="CYP" selected>Cypher (CYP)</option>
+            <option value="ETH">ETH</option>
+            <option value="BTC">BTC</option>
+            <option value="SOL">SOL</option>
+            <option value="ZEC">ZEC</option>
+          </select>
+          <input id="to-amt" type="number" placeholder="0.00" class="flex-1 bg-transparent text-right text-xl outline-none" readonly />
+        </div>
+      </div>
+
+      <div class="text-xs text-gray-500 mb-4 flex justify-between">
+        <span>Rate</span>
+        <span id="rate">1 ETH ≈ 1,250 CYP</span>
+      </div>
+
+      <button id="swap-btn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-lg">Swap Privately</button>
+      <p class="text-[10px] text-center text-gray-600 mt-2">Demo • Real Cypher zk-STARK private swaps coming soon</p>
+    </div>
+
+    <!-- History -->
+    <div class="glass rounded-2xl p-5">
+      <h3 class="text-sm font-medium mb-3">Recent Swaps</h3>
+      <div id="history" class="space-y-2 text-xs text-gray-400">
+        <p class="text-center py-4">No swaps yet</p>
+      </div>
+    </div>
+
+    <footer class="text-center text-[10px] text-gray-600 mt-6">
+      <a href="https://cypheranon-dev.github.io/Maskwallet/" class="accent hover:underline">Open Mask Wallet</a><br>
+      Open source • Cypher privacy tech
+    </footer>
+  </div>
+
+  <script>
+    const rates = { ETH: 1250, BTC: 45000, SOL: 85, ZEC: 32, CYP: 1 };
+    const balances = { ETH: 1.25, BTC: 0.015, SOL: 12.5, ZEC: 5.2, CYP: 0 };
+
+    function updateRate() {
+      const from = document.getElementById('from-asset').value;
+      const to = document.getElementById('to-asset').value;
+      const r = (rates[from] / rates[to]).toFixed(2);
+      document.getElementById('rate').textContent = `1 ${from} ≈ ${r} ${to}`;
+      calc();
+    }
+
+    function calc() {
+      const from = document.getElementById('from-asset').value;
+      const to = document.getElementById('to-asset').value;
+      const amt = parseFloat(document.getElementById('from-amt').value) || 0;
+      const out = amt * (rates[from] / rates[to]);
+      document.getElementById('to-amt').value = out ? out.toFixed(4) : '';
+      document.getElementById('from-balance').textContent = `Balance: ${balances[from].toFixed(4)}`;
+      document.getElementById('to-balance').textContent = `Balance: ${balances[to].toFixed(4)}`;
+    }
+
+    document.getElementById('from-asset').onchange = updateRate;
+    document.getElementById('to-asset').onchange = updateRate;
+    document.getElementById('from-amt').oninput = calc;
+    document.getElementById('switch').onclick = () => {
+      const f = document.getElementById('from-asset');
+      const t = document.getElementById('to-asset');
+      const tmp = f.value;
+      f.value = t.value;
+      t.value = tmp;
+      updateRate();
+    };
+
+    document.getElementById('swap-btn').onclick = () => {
+      const from = document.getElementById('from-asset').value;
+      const to = document.getElementById('to-asset').value;
+      const amt = document.getElementById('from-amt').value;
+      if (!amt || amt <= 0) return alert('Enter amount');
+      if (balances[from] < amt) return alert('Insufficient balance (demo)');
+      if (confirm(`Swap ${amt} ${from} → ${document.getElementById('to-amt').value} ${to} privately?`)) {
+        const hist = document.getElementById('history');
+        hist.innerHTML = `<div class="flex justify-between py-1 border-b border-gray-800"><span>${amt} ${from} → ${document.getElementById('to-amt').value} ${to}</span><span class="text-green-400">Done</span></div>` + hist.innerHTML;
+        balances[from] -= parseFloat(amt);
+        balances[to] += parseFloat(document.getElementById('to-amt').value);
+        document.getElementById('from-amt').value = '';
+        calc();
+        alert('Private swap completed (demo). Integrated with Mask Wallet.');
+      }
+    };
+
+    updateRate();
+  </script>
+</body>
+</html>
