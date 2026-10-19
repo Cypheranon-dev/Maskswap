@@ -8,12 +8,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body { background: #05070d; color: #e8e6e1; font-family: system-ui, sans-serif; }
-    .glass { background: rgba(10, 12, 20, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(240, 118, 42, 0.2); }
+    .glass { background: rgba(8, 10, 18, 0.92); backdrop-filter: blur(20px); border: 1px solid rgba(240, 118, 42, 0.35); box-shadow: 0 0 40px rgba(240,118,42,0.08); }
     .accent { color: #f0762a; }
-    .btn-primary { background: linear-gradient(135deg, #f0762a, #ff8a3d); color: #05070d; }
-    .btn-primary:hover { background: #ff8a3d; }
-    .pair-card { background: rgba(28, 61, 50, 0.4); border: 1px solid rgba(143, 217, 182, 0.15); }
-    .private-badge { background: #1c3d32; color: #8fd9b6; }
+    .btn-primary { background: linear-gradient(135deg, #f0762a, #ff8a3d); color: #05070d; box-shadow: 0 4px 20px rgba(240,118,42,0.4); }
+    .btn-primary:hover { background: #ff8a3d; box-shadow: 0 6px 28px rgba(240,118,42,0.55); }
+    .pair-card { background: rgba(20, 24, 36, 0.7); border: 1px solid rgba(240, 118, 42, 0.25); }
+    .private-badge { background: rgba(240, 118, 42, 0.15); color: #f0762a; border: 1px solid rgba(240,118,42,0.4); }
+    select, input { color: #e8e6e1; }
   </style>
 </head>
 <body class="min-h-screen antialiased">
@@ -32,7 +33,6 @@
         <span class="private-badge text-xs px-2 py-1 rounded-full">Shielded</span>
       </div>
 
-      <!-- From -->
       <div class="pair-card rounded-xl p-4 mb-3">
         <div class="flex justify-between text-xs text-gray-400 mb-1">
           <span>You pay</span>
@@ -54,7 +54,6 @@
         <button id="switch" class="w-8 h-8 rounded-full border border-gray-700 hover:border-accent text-sm">⇅</button>
       </div>
 
-      <!-- To -->
       <div class="pair-card rounded-xl p-4 mb-4">
         <div class="flex justify-between text-xs text-gray-400 mb-1">
           <span>You receive</span>
@@ -81,7 +80,6 @@
       <p class="text-[10px] text-center text-gray-600 mt-2">Demo • Real Cypher zk-STARK private swaps coming soon</p>
     </div>
 
-    <!-- History -->
     <div class="glass rounded-2xl p-5">
       <h3 class="text-sm font-medium mb-3">Recent Swaps</h3>
       <div id="history" class="space-y-2 text-xs text-gray-400">
