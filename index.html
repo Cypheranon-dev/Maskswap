@@ -15,6 +15,9 @@
     .pair-card { background: rgba(20, 24, 36, 0.7); border: 1px solid rgba(240, 118, 42, 0.25); }
     .private-badge { background: rgba(240, 118, 42, 0.15); color: #f0762a; border: 1px solid rgba(240,118,42,0.4); }
     select, input { color: #e8e6e1; }
+    .asset-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .asset-select { flex: 0 0 auto; max-width: 40%; background: transparent; font-weight: 600; outline: none; }
+    .asset-input { flex: 1; min-width: 0; background: transparent; text-align: right; font-size: 1.25rem; outline: none; }
   </style>
 </head>
 <body class="min-h-screen antialiased">
@@ -38,15 +41,15 @@
           <span>You pay</span>
           <span id="from-balance">Balance: 0.00</span>
         </div>
-        <div class="flex items-center gap-3">
-          <select id="from-asset" class="bg-transparent text-lg font-semibold outline-none">
+        <div class="asset-row">
+          <select id="from-asset" class="asset-select text-lg">
             <option value="ETH">ETH</option>
             <option value="BTC">BTC</option>
             <option value="SOL">SOL</option>
             <option value="ZEC">ZEC</option>
             <option value="CYP">Cypher (CYP)</option>
           </select>
-          <input id="from-amt" type="number" step="0.0001" placeholder="0.00" class="flex-1 bg-transparent text-right text-xl outline-none" />
+          <input id="from-amt" type="number" step="0.0001" placeholder="0.00" class="asset-input" />
         </div>
       </div>
 
@@ -59,21 +62,21 @@
           <span>You receive</span>
           <span id="to-balance">Balance: 0.00</span>
         </div>
-        <div class="flex items-center gap-3">
-          <select id="to-asset" class="bg-transparent text-lg font-semibold outline-none">
+        <div class="asset-row">
+          <select id="to-asset" class="asset-select text-lg">
             <option value="CYP" selected>Cypher (CYP)</option>
             <option value="ETH">ETH</option>
             <option value="BTC">BTC</option>
             <option value="SOL">SOL</option>
             <option value="ZEC">ZEC</option>
           </select>
-          <input id="to-amt" type="number" placeholder="0.00" class="flex-1 bg-transparent text-right text-xl outline-none" readonly />
+          <input id="to-amt" type="number" placeholder="0.00" class="asset-input" readonly />
         </div>
       </div>
 
       <div class="text-xs text-gray-500 mb-4 flex justify-between">
         <span>Rate</span>
-        <span id="rate">1 ETH ≈ 1,250 CYP</span>
+        <span id="rate">1 CYP = $0.25</span>
       </div>
 
       <button id="swap-btn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-lg">Swap Privately</button>
@@ -94,14 +97,15 @@
   </div>
 
   <script>
-    const rates = { ETH: 1250, BTC: 45000, SOL: 85, ZEC: 32, CYP: 1 };
-    const balances = { ETH: 1.25, BTC: 0.015, SOL: 12.5, ZEC: 5.2, CYP: 0 };
+    // USD prices — CYP fixed at $0.25
+    const prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
+    const balances = { ETH: 1.25, BTC: 0.015, SOL: 12.5, ZEC: 5.2, CYP: 1000 };
 
     function updateRate() {
       const from = document.getElementById('from-asset').value;
       const to = document.getElementById('to-asset').value;
-      const r = (rates[from] / rates[to]).toFixed(2);
-      document.getElementById('rate').textContent = `1 ${from} ≈ ${r} ${to}`;
+      const r = (prices[from] / prices[to]).toFixed(4);
+      document.getElementById('rate').textContent = `1 ${from} ≈ ${r} ${to} (CYP=$0.25)`;
       calc();
     }
 
@@ -109,7 +113,7 @@
       const from = document.getElementById('from-asset').value;
       const to = document.getElementById('to-asset').value;
       const amt = parseFloat(document.getElementById('from-amt').value) || 0;
-      const out = amt * (rates[from] / rates[to]);
+      const out = amt * (prices[from] / prices[to]);
       document.getElementById('to-amt').value = out ? out.toFixed(4) : '';
       document.getElementById('from-balance').textContent = `Balance: ${balances[from].toFixed(4)}`;
       document.getElementById('to-balance').textContent = `Balance: ${balances[to].toFixed(4)}`;
