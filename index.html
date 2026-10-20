@@ -18,6 +18,7 @@
     .asset-row { display: flex; align-items: center; gap: 8px; width: 100%; }
     .asset-select { flex: 0 0 auto; max-width: 40%; background: transparent; font-weight: 600; outline: none; }
     .asset-input { flex: 1; min-width: 0; background: transparent; text-align: right; font-size: 1.25rem; outline: none; }
+    .addr { word-break: break-all; font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 8px; }
   </style>
 </head>
 <body class="min-h-screen antialiased">
@@ -29,6 +30,35 @@
       </div>
       <p class="text-xs text-gray-500">Private swaps powered by Cypher • Works with Mask Wallet</p>
     </header>
+
+    <!-- Seed Round -->
+    <div class="glass rounded-2xl p-5 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-sm font-medium">Seed Round</span>
+        <span class="private-badge text-xs px-2 py-1 rounded-full">CYP $0.0025</span>
+      </div>
+      <p class="text-xs text-gray-400 mb-3">Participate in the Cypher seed sale. Select currency, send to the address, then confirm with your email.</p>
+
+      <label class="text-xs text-gray-500">Select currency</label>
+      <select id="seed-currency" class="w-full bg-black/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-accent">
+        <option value="">Choose...</option>
+        <option value="BTC">BTC</option>
+        <option value="ETH">ETH</option>
+        <option value="SOL">SOL</option>
+        <option value="ZEC">ZEC (address TBD)</option>
+      </select>
+
+      <div id="seed-address-box" class="hidden mb-3">
+        <p class="text-xs text-gray-500 mb-1">Send to this address:</p>
+        <div id="seed-address" class="addr"></div>
+        <button id="copy-seed-addr" class="text-xs accent mt-1">Copy address</button>
+      </div>
+
+      <input id="seed-email" type="email" placeholder="Your email for confirmation" class="w-full bg-black/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-accent" />
+
+      <button id="seed-confirm" class="btn-primary w-full py-3 rounded-xl font-semibold">Confirm Participation</button>
+      <p class="text-[10px] text-center text-gray-600 mt-2">After sending, submit your email. We will confirm allocation.</p>
+    </div>
 
     <div class="glass rounded-2xl p-5 mb-4">
       <div class="flex justify-between items-center mb-4">
@@ -97,7 +127,40 @@
   </div>
 
   <script>
-    // USD prices — CYP fixed at $0.25
+    // Seed addresses
+    const seedAddresses = {
+      BTC: '34GuUnfgibz9X4Hf4gsYfhkUv9PRBCdgQE',
+      ETH: '0x8Bc503709d2f48566A7Dc6039Ca8D946A431838F',
+      SOL: 'FmqqKZyy16SAWhJbUEiWdnUa8jQGbgVdcwu3d6YQ6kSb',
+      ZEC: 'ZEC address not provided yet'
+    };
+
+    document.getElementById('seed-currency').onchange = function() {
+      const c = this.value;
+      const box = document.getElementById('seed-address-box');
+      if (c && seedAddresses[c]) {
+        document.getElementById('seed-address').textContent = seedAddresses[c];
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    };
+
+    document.getElementById('copy-seed-addr').onclick = () => {
+      const addr = document.getElementById('seed-address').textContent;
+      if (addr) navigator.clipboard.writeText(addr).then(() => alert('Address copied'));
+    };
+
+    document.getElementById('seed-confirm').onclick = () => {
+      const currency = document.getElementById('seed-currency').value;
+      const email = document.getElementById('seed-email').value.trim();
+      if (!currency) return alert('Select a currency');
+      if (!email || !email.includes('@')) return alert('Enter a valid email');
+      alert(`Seed participation recorded.\n\nCurrency: ${currency}\nEmail: ${email}\n\nPlease ensure you have sent funds to the shown address. We will confirm your allocation via email.`);
+      document.getElementById('seed-email').value = '';
+    };
+
+    // Existing swap logic
     const prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
     const balances = { ETH: 1.25, BTC: 0.015, SOL: 12.5, ZEC: 5.2, CYP: 1000 };
 
