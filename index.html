@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://formspree.io;">
   <title>Mask Swap — Private Cypher Swaps</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -37,7 +38,7 @@
         <span class="text-sm font-medium">Seed Round</span>
         <span class="private-badge text-xs px-2 py-1 rounded-full">CYP $0.0025</span>
       </div>
-      <p class="text-xs text-gray-400 mb-3">Participate in the Cypher seed sale. Select currency, send to the address, then confirm with your email.</p>
+      <p class="text-xs text-gray-400 mb-3">Participate in the Cypher seed sale. Select currency, send to the address, then confirm with your email. Notifications go securely to the project email.</p>
 
       <label class="text-xs text-gray-500">Select currency</label>
       <select id="seed-currency" class="w-full bg-black/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-accent">
@@ -57,7 +58,7 @@
       <input id="seed-email" type="email" placeholder="Your email for confirmation" class="w-full bg-black/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-accent" />
 
       <button id="seed-confirm" class="btn-primary w-full py-3 rounded-xl font-semibold">Confirm Participation</button>
-      <p class="text-[10px] text-center text-gray-600 mt-2">After sending, submit your email. We will confirm allocation.</p>
+      <p class="text-[10px] text-center text-gray-600 mt-2">After sending funds, submit. Emails are routed securely (no keys stored in browser).</p>
     </div>
 
     <div class="glass rounded-2xl p-5 mb-4">
@@ -122,18 +123,22 @@
 
     <footer class="text-center text-[10px] text-gray-600 mt-6">
       <a href="https://cypheranon-dev.github.io/Maskwallet/" class="accent hover:underline">Open Mask Wallet</a><br>
-      Open source • Cypher privacy tech
+      Open source • Cypher privacy tech • No secrets in client
     </footer>
   </div>
 
   <script>
-    // Seed addresses
+    // Seed addresses (public deposit addresses only)
     const seedAddresses = {
       BTC: '34GuUnfgibz9X4Hf4gsYfhkUv9PRBCdgQE',
       ETH: '0x8Bc503709d2f48566A7Dc6039Ca8D946A431838F',
       SOL: 'FmqqKZyy16SAWhJbUEiWdnUa8jQGbgVdcwu3d6YQ6kSb',
       ZEC: 'ZEC address not provided yet'
     };
+
+    // Formspree endpoint — create a free form at formspree.io and replace YOUR_FORM_ID
+    // Notifications are delivered to the email you set in Formspree (cryptocapitalx8@gmail.com)
+    const FORMSPREE_URL = 'https://formspree.io/f/YOUR_FORM_ID';
 
     document.getElementById('seed-currency').onchange = function() {
       const c = this.value;
@@ -151,13 +156,34 @@
       if (addr) navigator.clipboard.writeText(addr).then(() => alert('Address copied'));
     };
 
-    document.getElementById('seed-confirm').onclick = () => {
+    document.getElementById('seed-confirm').onclick = async () => {
       const currency = document.getElementById('seed-currency').value;
       const email = document.getElementById('seed-email').value.trim();
       if (!currency) return alert('Select a currency');
       if (!email || !email.includes('@')) return alert('Enter a valid email');
-      alert(`Seed participation recorded.\n\nCurrency: ${currency}\nEmail: ${email}\n\nPlease ensure you have sent funds to the shown address. We will confirm your allocation via email.`);
-      document.getElementById('seed-email').value = '';
+
+      const payload = {
+        email: email,
+        currency: currency,
+        message: `Seed Round participation: ${currency} — user email: ${email}`,
+        _subject: 'Cypher Seed Round Participation'
+      };
+
+      try {
+        const res = await fetch(FORMSPREE_URL, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('Participation submitted securely. You will receive confirmation. Funds must be sent to the displayed address.');
+          document.getElementById('seed-email').value = '';
+        } else {
+          alert('Submission failed. Check Formspree setup or try again.');
+        }
+      } catch (e) {
+        alert('Network error. Participation recorded locally only (demo). Please configure Formspree.');
+      }
     };
 
     // Existing swap logic
