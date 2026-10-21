@@ -2,7 +2,7 @@
 
 **Private CEX-inspired swaps for the Cypher ecosystem.**
 
-Standalone web app that works together with [Mask Wallet](https://github.com/Cypheranon-dev/Maskwallet).
+Standalone web app that works together with [Mask Wallet](https://github.com/Cypheranon-dev/Maskwallet) — a Zodl-inspired Cypher wallet with Zcash integrated.
 
 ## Features (v1)
 
@@ -21,8 +21,8 @@ After enabling GitHub Pages:
 ## Seed Round Email Routing
 
 1. Create a free form at [formspree.io](https://formspree.io).
-2. Set the notification email to **cryptocapitalx8@gmail.com**.
-3. Replace `YOUR_FORM_ID` in `index.html` with your form ID.
+2. Set the notification email in Formspree dashboard (not shown on frontend).
+3. Form already points to the live endpoint.
 4. No secrets are stored in the repo.
 
 ## Security
