@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; form-action https://formspree.io;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.coingecko.com https://api.binance.com https://corsproxy.io;">
   <title>Mask Swap — Private Cypher Swaps</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%23f0762a' stroke-width='3'/><path d='M46 18 L32 18 A14 14 0 0 0 32 46 L46 46' fill='none' stroke='%23f0762a' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/><rect x='28' y='12' width='4' height='6' fill='%23f0762a'/><rect x='36' y='12' width='4' height='6' fill='%23f0762a'/><rect x='28' y='46' width='4' height='6' fill='%23f0762a'/><rect x='36' y='46' width='4' height='6' fill='%23f0762a'/></svg>" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,7 +59,7 @@
     <!-- Candlestick Chart -->
     <div class="glass rounded-2xl p-4 mb-4">
       <div class="flex justify-between items-center mb-2">
-        <span class="text-sm font-medium">Price Chart <span class="text-[10px] text-gray-500" id="chart-status">(live)</span></span>
+        <span class="text-sm font-medium">Price Chart <span class="text-[10px] text-gray-500" id="chart-status">(loading...)</span></span>
         <select id="candle-asset" class="bg-transparent text-xs outline-none">
           <option value="CYP">CYP</option>
           <option value="ETH">ETH</option>
@@ -195,8 +195,8 @@
       if (addr) navigator.clipboard.writeText(addr).then(() => alert('Address copied'));
     };
 
-    const prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
-    const symbols = { ETH: 'ETHUSDT', BTC: 'BTCUSDT', SOL: 'SOLUSDT', ZEC: 'ZECUSDT' };
+    let prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
+    const cgIds = { ETH: 'ethereum', BTC: 'bitcoin', SOL: 'solana', ZEC: 'zcash' };
 
     function generateCandles(base, count = 40) {
       const data = [];
@@ -230,28 +230,63 @@
       return data;
     }
 
+    async function fetchRecentPrices() {
+      try {
+        const ids = Object.values(cgIds).join(',');
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+        if (!res.ok) throw new Error('price fail');
+        const data = await res.json();
+        if (data.ethereum?.usd) prices.ETH = data.ethereum.usd;
+        if (data.bitcoin?.usd) prices.BTC = data.bitcoin.usd;
+        if (data.solana?.usd) prices.SOL = data.solana.usd;
+        if (data.zcash?.usd) prices.ZEC = data.zcash.usd;
+        updateRate();
+      } catch (e) {
+        console.warn('Price fetch failed', e);
+      }
+    }
+
     async function loadCandles(asset) {
       const status = document.getElementById('chart-status');
       if (asset === 'CYP') {
         status.textContent = '($0.25)';
         return generateCypCandles();
       }
-      const symbol = symbols[asset];
+      const id = cgIds[asset];
       try {
         status.textContent = '(loading...)';
-        const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=40`);
-        if (!res.ok) throw new Error('API error');
-        const klines = await res.json();
-        status.textContent = '(live Binance)';
-        return klines.map(k => ({
+        // CoinGecko public OHLC — recent data, CORS ok
+        const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=usd&days=1`);
+        if (!res.ok) throw new Error('CG fail');
+        const raw = await res.json();
+        if (!Array.isArray(raw) || raw.length === 0) throw new Error('empty');
+        status.textContent = '(live CoinGecko)';
+        return raw.map(k => ({
           time: Math.floor(k[0] / 1000),
-          open: parseFloat(k[1]),
-          high: parseFloat(k[2]),
-          low: parseFloat(k[3]),
-          close: parseFloat(k[4])
+          open: k[1],
+          high: k[2],
+          low: k[3],
+          close: k[4]
         }));
       } catch (e) {
-        console.warn('Binance failed', e);
+        console.warn('CoinGecko OHLC failed', e);
+        // Fallback: Binance via proxy
+        try {
+          const symbol = asset + 'USDT';
+          const proxy = 'https://corsproxy.io/?';
+          const res2 = await fetch(proxy + encodeURIComponent(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=40`));
+          if (res2.ok) {
+            const klines = await res2.json();
+            status.textContent = '(live Binance)';
+            return klines.map(k => ({
+              time: Math.floor(k[0] / 1000),
+              open: parseFloat(k[1]),
+              high: parseFloat(k[2]),
+              low: parseFloat(k[3]),
+              close: parseFloat(k[4])
+            }));
+          }
+        } catch (e2) {}
         status.textContent = '(demo fallback)';
         return generateCandles(prices[asset] || 100);
       }
@@ -280,7 +315,8 @@
       chart.timeScale().fitContent();
     }
 
-    updateChart('CYP');
+    // Load recent data every page load
+    fetchRecentPrices().then(() => updateChart('CYP'));
 
     document.getElementById('candle-asset').onchange = function() {
       updateChart(this.value);
