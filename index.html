@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.coingecko.com https://api.binance.com https://corsproxy.io;">
   <title>Mask Swap — Private Cypher Swaps</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%23f0762a' stroke-width='3'/><path d='M46 18 L32 18 A14 14 0 0 0 32 46 L46 46' fill='none' stroke='%23f0762a' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/><rect x='28' y='12' width='4' height='6' fill='%23f0762a'/><rect x='36' y='12' width='4' height='6' fill='%23f0762a'/><rect x='28' y='46' width='4' height='6' fill='%23f0762a'/><rect x='36' y='46' width='4' height='6' fill='%23f0762a'/></svg>" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     body { background: #05070d; color: #e8e6e1; font-family: system-ui, sans-serif; }
     .glass { background: rgba(8, 10, 18, 0.92); backdrop-filter: blur(20px); border: 1px solid rgba(240, 118, 42, 0.35); box-shadow: 0 0 40px rgba(240,118,42,0.08); }
@@ -31,7 +29,6 @@
       .asset-input { flex: 1; }
     }
     .addr { word-break: break-all; font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 8px; }
-    #candle-chart { height: 200px; width: 100%; }
   </style>
 </head>
 <body class="min-h-screen antialiased">
@@ -48,27 +45,12 @@
         </svg>
         <h1 class="text-2xl font-bold">Mask Swap</h1>
       </div>
-      <p class="text-xs text-gray-500">Private swaps powered by Cypher • Live charts</p>
+      <p class="text-xs text-gray-500">Private swaps powered by Cypher</p>
     </header>
 
     <div class="flex gap-2 mb-4 text-xs">
       <a href="https://cypheranon-dev.github.io/Maskwallet/" class="flex-1 text-center py-2 rounded-lg border border-gray-700 hover:border-accent">Mask Wallet</a>
       <a href="https://cypheranon-dev.github.io/ShieldLend/" class="flex-1 text-center py-2 rounded-lg border border-gray-700 hover:border-accent">ShieldLend</a>
-    </div>
-
-    <!-- Candlestick Chart -->
-    <div class="glass rounded-2xl p-4 mb-4">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-sm font-medium">Price Chart <span class="text-[10px] text-gray-500" id="chart-status">(loading...)</span></span>
-        <select id="candle-asset" class="bg-transparent text-xs outline-none">
-          <option value="CYP">CYP</option>
-          <option value="ETH">ETH</option>
-          <option value="BTC">BTC</option>
-          <option value="SOL">SOL</option>
-          <option value="ZEC">ZEC</option>
-        </select>
-      </div>
-      <div id="candle-chart"></div>
     </div>
 
     <!-- Seed Round -->
@@ -198,38 +180,6 @@
     let prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
     const cgIds = { ETH: 'ethereum', BTC: 'bitcoin', SOL: 'solana', ZEC: 'zcash' };
 
-    function generateCandles(base, count = 40) {
-      const data = [];
-      let time = Math.floor(Date.now() / 1000) - count * 3600;
-      let price = base;
-      for (let i = 0; i < count; i++) {
-        const open = price;
-        const close = +(open * (1 + (Math.random() - 0.48) * 0.025)).toFixed(base > 100 ? 2 : 6);
-        const high = +(Math.max(open, close) * (1 + Math.random() * 0.012)).toFixed(base > 100 ? 2 : 6);
-        const low = +(Math.min(open, close) * (1 - Math.random() * 0.012)).toFixed(base > 100 ? 2 : 6);
-        data.push({ time, open, high, low, close });
-        price = close;
-        time += 3600;
-      }
-      return data;
-    }
-
-    function generateCypCandles(count = 40) {
-      const data = [];
-      let time = Math.floor(Date.now() / 1000) - count * 3600;
-      let price = 0.25;
-      for (let i = 0; i < count; i++) {
-        const open = price;
-        const close = +(open * (1 + (Math.random() - 0.5) * 0.03)).toFixed(6);
-        const high = +(Math.max(open, close) * (1 + Math.random() * 0.015)).toFixed(6);
-        const low = +(Math.min(open, close) * (1 - Math.random() * 0.015)).toFixed(6);
-        data.push({ time, open, high, low, close });
-        price = close;
-        time += 3600;
-      }
-      return data;
-    }
-
     async function fetchRecentPrices() {
       try {
         const ids = Object.values(cgIds).join(',');
@@ -245,82 +195,6 @@
         console.warn('Price fetch failed', e);
       }
     }
-
-    async function loadCandles(asset) {
-      const status = document.getElementById('chart-status');
-      if (asset === 'CYP') {
-        status.textContent = '($0.25)';
-        return generateCypCandles();
-      }
-      const id = cgIds[asset];
-      try {
-        status.textContent = '(loading...)';
-        // CoinGecko public OHLC — recent data, CORS ok
-        const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=usd&days=1`);
-        if (!res.ok) throw new Error('CG fail');
-        const raw = await res.json();
-        if (!Array.isArray(raw) || raw.length === 0) throw new Error('empty');
-        status.textContent = '(live CoinGecko)';
-        return raw.map(k => ({
-          time: Math.floor(k[0] / 1000),
-          open: k[1],
-          high: k[2],
-          low: k[3],
-          close: k[4]
-        }));
-      } catch (e) {
-        console.warn('CoinGecko OHLC failed', e);
-        // Fallback: Binance via proxy
-        try {
-          const symbol = asset + 'USDT';
-          const proxy = 'https://corsproxy.io/?';
-          const res2 = await fetch(proxy + encodeURIComponent(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=40`));
-          if (res2.ok) {
-            const klines = await res2.json();
-            status.textContent = '(live Binance)';
-            return klines.map(k => ({
-              time: Math.floor(k[0] / 1000),
-              open: parseFloat(k[1]),
-              high: parseFloat(k[2]),
-              low: parseFloat(k[3]),
-              close: parseFloat(k[4])
-            }));
-          }
-        } catch (e2) {}
-        status.textContent = '(demo fallback)';
-        return generateCandles(prices[asset] || 100);
-      }
-    }
-
-    const chart = LightweightCharts.createChart(document.getElementById('candle-chart'), {
-      height: 200,
-      layout: { background: { color: '#080a12' }, textColor: '#e8e6e1' },
-      grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
-      rightPriceScale: { borderColor: 'rgba(240,118,42,0.4)' },
-      timeScale: { borderColor: 'rgba(240,118,42,0.4)', timeVisible: true, secondsVisible: false },
-      crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
-    });
-
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#f0762a',
-      downColor: '#ef5350',
-      borderVisible: false,
-      wickUpColor: '#f0762a',
-      wickDownColor: '#ef5350'
-    });
-
-    async function updateChart(asset) {
-      const data = await loadCandles(asset);
-      candleSeries.setData(data);
-      chart.timeScale().fitContent();
-    }
-
-    // Load recent data every page load
-    fetchRecentPrices().then(() => updateChart('CYP'));
-
-    document.getElementById('candle-asset').onchange = function() {
-      updateChart(this.value);
-    };
 
     const balances = { ETH: 1.25, BTC: 0.015, SOL: 12.5, ZEC: 5.2, CYP: 1000 };
 
@@ -371,6 +245,7 @@
       }
     };
 
+    fetchRecentPrices();
     updateRate();
 
     if ('serviceWorker' in navigator) {
