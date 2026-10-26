@@ -53,6 +53,15 @@
       <a href="https://cypheranon-dev.github.io/ShieldLend/" class="flex-1 text-center py-2 rounded-lg border border-gray-700 hover:border-accent">ShieldLend</a>
     </div>
 
+    <!-- Live Prices -->
+    <div class="glass rounded-2xl p-4 mb-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm font-medium">Live Prices</span>
+        <span class="text-[10px] text-gray-500" id="price-status">loading...</span>
+      </div>
+      <div id="price-list" class="grid grid-cols-2 gap-2 text-sm"></div>
+    </div>
+
     <!-- Seed Round -->
     <div class="glass rounded-2xl p-5 mb-4">
       <div class="flex justify-between items-center mb-3">
@@ -180,8 +189,17 @@
     let prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
     const cgIds = { ETH: 'ethereum', BTC: 'bitcoin', SOL: 'solana', ZEC: 'zcash' };
 
+    function renderPrices() {
+      const el = document.getElementById('price-list');
+      el.innerHTML = Object.entries(prices).map(([k, v]) =>
+        `<div class="flex justify-between"><span>${k}</span><span class="accent">$${v.toLocaleString(undefined, {maximumFractionDigits: k === 'CYP' ? 4 : 0})}</span></div>`
+      ).join('');
+    }
+
     async function fetchRecentPrices() {
+      const status = document.getElementById('price-status');
       try {
+        status.textContent = 'loading...';
         const ids = Object.values(cgIds).join(',');
         const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
         if (!res.ok) throw new Error('price fail');
@@ -190,8 +208,12 @@
         if (data.bitcoin?.usd) prices.BTC = data.bitcoin.usd;
         if (data.solana?.usd) prices.SOL = data.solana.usd;
         if (data.zcash?.usd) prices.ZEC = data.zcash.usd;
+        status.textContent = 'live';
+        renderPrices();
         updateRate();
       } catch (e) {
+        status.textContent = 'demo';
+        renderPrices();
         console.warn('Price fetch failed', e);
       }
     }
@@ -247,6 +269,7 @@
 
     fetchRecentPrices();
     updateRate();
+    renderPrices();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
