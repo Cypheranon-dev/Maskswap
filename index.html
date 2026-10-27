@@ -7,124 +7,94 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%23f0762a' stroke-width='3'/><path d='M46 18 L32 18 A14 14 0 0 0 32 46 L46 46' fill='none' stroke='%23f0762a' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/><rect x='28' y='12' width='4' height='6' fill='%23f0762a'/><rect x='36' y='12' width='4' height='6' fill='%23f0762a'/><rect x='28' y='46' width='4' height='6' fill='%23f0762a'/><rect x='36' y='46' width='4' height='6' fill='%23f0762a'/></svg>" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root { --bg: #05070d; --card: rgba(12, 14, 22, 0.85); --border: rgba(240, 118, 42, 0.25); --accent: #f0762a; --text: #e8e6e1; }
-    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
-    .card { background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--border); }
-    .accent { color: var(--accent); }
-    .btn { background: var(--accent); color: #05070d; font-weight: 600; }
+    body { background: #05070d; color: #e8e6e1; font-family: system-ui, -apple-system, sans-serif; }
+    .card { background: #0c0e16; border: 1px solid rgba(255,255,255,0.06); }
+    .accent { color: #f0762a; }
+    .btn { background: #f0762a; color: #05070d; font-weight: 600; }
     .btn:hover { background: #ff8a3d; }
-    .btn:disabled { opacity: 0.5; }
-    .field { background: rgba(20, 24, 36, 0.6); border: 1px solid rgba(240, 118, 42, 0.2); }
+    .field { background: #141824; border: 1px solid rgba(255,255,255,0.06); }
     .input { background: transparent; outline: none; }
-    select.input { background: transparent; }
+    .asset-pill { background: #2a2018; border: 1px solid rgba(240,118,42,0.3); }
     .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1c3d32; padding: 0.75rem 1.25rem; border-radius: 0.75rem; font-size: 0.875rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 50; }
     .toast.show { opacity: 1; }
-    .addr { word-break: break-all; font-family: ui-monospace, monospace; font-size: 0.75rem; background: rgba(0,0,0,0.35); padding: 0.5rem; border-radius: 0.5rem; }
   </style>
 </head>
 <body class="min-h-screen antialiased">
-  <div class="max-w-md mx-auto px-4 py-6">
-    <header class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-2">
-        <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true">
-          <circle cx="32" cy="32" r="28" fill="none" stroke="#f0762a" stroke-width="3"/>
-          <path d="M46 18 L32 18 A14 14 0 0 0 32 46 L46 46" fill="none" stroke="#f0762a" stroke-width="5" stroke-linecap="round"/>
-          <rect x="28" y="12" width="4" height="6" fill="#f0762a"/>
-          <rect x="36" y="12" width="4" height="6" fill="#f0762a"/>
-          <rect x="28" y="46" width="4" height="6" fill="#f0762a"/>
-          <rect x="36" y="46" width="4" height="6" fill="#f0762a"/>
-        </svg>
-        <span class="text-lg font-semibold">Mask Swap</span>
-      </div>
-      <div class="flex gap-3 text-xs">
-        <a href="https://cypheranon-dev.github.io/Maskwallet/" class="text-gray-500 hover:text-white">Wallet</a>
-        <a href="https://cypheranon-dev.github.io/ShieldLend/" class="text-gray-500 hover:text-white">Lend</a>
-      </div>
-    </header>
-
-    <div class="card rounded-2xl p-4 mb-4">
-      <div class="text-xs text-gray-500 mb-2">Prices</div>
-      <div id="price-list" class="grid grid-cols-5 gap-1 text-center text-xs"></div>
+  <div class="max-w-md mx-auto min-h-screen flex flex-col p-4">
+    <div class="flex justify-between items-center mb-6">
+      <span class="text-sm text-gray-500">Swap · DEX</span>
+      <a href="https://cypheranon-dev.github.io/Maskwallet/" class="text-xs text-gray-500">Wallet</a>
     </div>
 
-    <div class="card rounded-2xl p-5 mb-4">
-      <div class="flex justify-between items-center mb-3">
-        <span class="text-sm font-medium">Seed allocation</span>
-        <span class="text-xs accent">$0.25</span>
+    <div class="card rounded-2xl p-5 flex-1 flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-lg font-semibold">Swap</span>
+        <span class="text-xs text-gray-500 pill px-2 py-1 rounded-full bg-[#1a1d28]">0.5%</span>
       </div>
-      <form action="https://formspree.io/f/mvkzjkjz" method="POST" class="space-y-3">
-        <select name="currency" id="seed-currency" class="input field w-full rounded-lg px-3 py-2.5 text-sm" required>
+
+      <div class="field rounded-2xl p-4 mb-2 relative">
+        <div class="text-xs text-gray-500 mb-2">From</div>
+        <div class="flex items-center justify-between">
+          <input id="from-amt" type="number" step="any" placeholder="0.00" class="input text-3xl w-1/2" value="" />
+          <select id="from-asset" class="asset-pill text-sm font-medium px-3 py-1.5 rounded-full accent">
+            <option value="CYP">C CYPHER</option>
+            <option value="ETH">E cETH</option>
+            <option value="BTC">B cBTC</option>
+            <option value="SOL">S cSOL</option>
+          </select>
+        </div>
+        <div class="text-xs text-gray-500 mt-1">Balance: <span id="from-balance">0</span></div>
+
+        <div class="flex justify-center -my-2 relative z-10">
+          <button id="switch" class="w-8 h-8 rounded-full bg-[#0c0e16] border border-gray-700 flex items-center justify-center text-xs accent">↓</button>
+        </div>
+
+        <div class="text-xs text-gray-500 mb-2 mt-2">To (estimated)</div>
+        <div class="flex items-center justify-between">
+          <input id="to-amt" type="text" readonly placeholder="0.00" class="input text-3xl w-1/2 text-gray-300" />
+          <select id="to-asset" class="asset-pill text-sm font-medium px-3 py-1.5 rounded-full accent">
+            <option value="BTC">B cBTC</option>
+            <option value="CYP" selected>C CYPHER</option>
+            <option value="ETH">E cETH</option>
+            <option value="SOL">S cSOL</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-between text-xs text-gray-500 my-3">
+        <span>Rate</span>
+        <span id="rate">1 CYPHER ≈ —</span>
+      </div>
+
+      <div class="field rounded-xl p-3 flex items-center gap-2 text-xs text-gray-400 mb-6">
+        <span class="accent">◆</span> Routed through the shielded pool — no public order trail
+      </div>
+
+      <div class="text-xs text-gray-500 mb-2">Trending pairs</div>
+      <div class="space-y-2 text-sm mb-6">
+        <div class="flex justify-between py-1 border-b border-gray-800"><span>CYPHER / cETH</span><span class="accent">+4.2%</span></div>
+        <div class="flex justify-between py-1"><span>cSOL / cBTC</span><span class="text-blue-400">-0.6%</span></div>
+      </div>
+
+      <button id="swap-btn" class="btn w-full py-4 rounded-2xl mt-auto">Review Swap</button>
+    </div>
+
+    <!-- Seed form collapsed / secondary -->
+    <details class="mt-4">
+      <summary class="text-xs text-gray-500 cursor-pointer">Seed allocation</summary>
+      <form action="https://formspree.io/f/mvkzjkjz" method="POST" class="card rounded-xl p-4 mt-2 space-y-2">
+        <select name="currency" id="seed-currency" class="w-full bg-[#1a1d28] rounded-lg px-3 py-2 text-sm" required>
           <option value="">Currency</option>
           <option value="BTC">BTC</option>
           <option value="ETH">ETH</option>
           <option value="SOL">SOL</option>
         </select>
-        <div id="seed-address-box" class="hidden">
-          <div id="seed-address" class="addr"></div>
-          <button type="button" id="copy-seed-addr" class="text-xs accent mt-1">Copy</button>
-        </div>
-        <input name="email" type="email" placeholder="Email" class="input field w-full rounded-lg px-3 py-2.5 text-sm" required />
+        <div id="seed-address-box" class="hidden text-xs font-mono break-all bg-black/40 p-2 rounded"></div>
+        <input name="email" type="email" placeholder="Email" class="w-full bg-[#1a1d28] rounded-lg px-3 py-2 text-sm" required />
         <input type="hidden" name="_subject" value="Cypher Seed" />
-        <button type="submit" class="btn w-full py-3 rounded-xl">Submit</button>
+        <button type="submit" class="btn w-full py-2 rounded-lg text-sm">Submit</button>
       </form>
-    </div>
-
-    <div class="card rounded-2xl p-5 mb-4">
-      <div class="flex justify-between items-center mb-4">
-        <span class="text-sm font-medium">Swap</span>
-        <span class="text-xs text-gray-500">Private</span>
-      </div>
-
-      <div class="field rounded-xl p-4 mb-2">
-        <div class="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Pay</span>
-          <span id="from-balance"></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <select id="from-asset" class="input font-medium">
-            <option value="ETH">ETH</option>
-            <option value="BTC">BTC</option>
-            <option value="SOL">SOL</option>
-            <option value="ZEC">ZEC</option>
-            <option value="CYP">CYP</option>
-          </select>
-          <input id="from-amt" type="number" step="any" placeholder="0" class="input flex-1 text-right text-lg" />
-        </div>
-      </div>
-
-      <div class="text-center my-1">
-        <button id="switch" class="w-7 h-7 rounded-full border border-gray-700 text-xs hover:border-accent">↓</button>
-      </div>
-
-      <div class="field rounded-xl p-4 mb-3">
-        <div class="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Receive</span>
-          <span id="to-balance"></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <select id="to-asset" class="input font-medium">
-            <option value="CYP" selected>CYP</option>
-            <option value="ETH">ETH</option>
-            <option value="BTC">BTC</option>
-            <option value="SOL">SOL</option>
-            <option value="ZEC">ZEC</option>
-          </select>
-          <input id="to-amt" type="text" readonly placeholder="0" class="input flex-1 text-right text-lg text-gray-300" />
-        </div>
-      </div>
-
-      <div class="flex justify-between text-xs text-gray-500 mb-4">
-        <span>Rate</span>
-        <span id="rate"></span>
-      </div>
-
-      <button id="swap-btn" class="btn w-full py-3 rounded-xl">Swap</button>
-    </div>
-
-    <div class="card rounded-2xl p-5">
-      <div class="text-sm font-medium mb-3">History</div>
-      <div id="history" class="text-xs text-gray-500 text-center py-4">No swaps</div>
-    </div>
+    </details>
   </div>
   <div id="toast" class="toast"></div>
 
@@ -141,48 +111,33 @@
       ETH: '0x8Bc503709d2f48566A7Dc6039Ca8D946A431838F',
       SOL: 'FmqqKZyy16SAWhJbUEiWdnUa8jQGbgVdcwu3d6YQ6kSb'
     };
-
     document.getElementById('seed-currency').onchange = function() {
       const c = this.value;
       const box = document.getElementById('seed-address-box');
-      if (seedAddresses[c]) {
-        document.getElementById('seed-address').textContent = seedAddresses[c];
-        box.classList.remove('hidden');
-      } else box.classList.add('hidden');
-    };
-    document.getElementById('copy-seed-addr').onclick = () => {
-      navigator.clipboard.writeText(document.getElementById('seed-address').textContent).then(() => toast('Copied'));
+      if (seedAddresses[c]) { box.textContent = seedAddresses[c]; box.classList.remove('hidden'); }
+      else box.classList.add('hidden');
     };
 
-    let prices = { ETH: 2500, BTC: 65000, SOL: 150, ZEC: 40, CYP: 0.25 };
-    const cgIds = { ETH: 'ethereum', BTC: 'bitcoin', SOL: 'solana', ZEC: 'zcash' };
-    const balances = { ETH: 1.25, BTC: 0.015, SOL: 12.5, ZEC: 5.2, CYP: 1000 };
-
-    function renderPrices() {
-      document.getElementById('price-list').innerHTML = Object.entries(prices).map(([k, v]) =>
-        `<div><div class="text-gray-500">${k}</div><div class="accent">$${Number(v).toLocaleString(undefined,{maximumFractionDigits:k==='CYP'?2:0})}</div></div>`
-      ).join('');
-    }
+    let prices = { ETH: 2500, BTC: 65000, SOL: 150, CYP: 0.25 };
+    const balances = { ETH: 1.228, BTC: 0.0412, SOL: 12.5, CYP: 8240.12 };
 
     async function fetchPrices() {
       try {
-        const ids = Object.values(cgIds).join(',');
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
-        if (!res.ok) throw 0;
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,solana&vs_currencies=usd');
+        if (!res.ok) return;
         const data = await res.json();
         if (data.ethereum?.usd) prices.ETH = data.ethereum.usd;
         if (data.bitcoin?.usd) prices.BTC = data.bitcoin.usd;
         if (data.solana?.usd) prices.SOL = data.solana.usd;
-        if (data.zcash?.usd) prices.ZEC = data.zcash.usd;
       } catch {}
-      renderPrices();
       updateRate();
     }
 
     function updateRate() {
       const from = document.getElementById('from-asset').value;
       const to = document.getElementById('to-asset').value;
-      document.getElementById('rate').textContent = `1 ${from} = ${(prices[from]/prices[to]).toFixed(4)} ${to}`;
+      const r = prices[from] / prices[to];
+      document.getElementById('rate').textContent = `1 ${from} ≈ ${r.toFixed(6)} ${to}`;
       calc();
     }
     function calc() {
@@ -191,8 +146,7 @@
       const amt = parseFloat(document.getElementById('from-amt').value) || 0;
       const out = amt * (prices[from] / prices[to]);
       document.getElementById('to-amt').value = out ? out.toFixed(4) : '';
-      document.getElementById('from-balance').textContent = balances[from].toFixed(4);
-      document.getElementById('to-balance').textContent = balances[to].toFixed(4);
+      document.getElementById('from-balance').textContent = balances[from].toLocaleString(undefined, {maximumFractionDigits: 4});
     }
 
     document.getElementById('from-asset').onchange = updateRate;
@@ -213,8 +167,6 @@
       const out = parseFloat(document.getElementById('to-amt').value);
       balances[from] -= amt;
       balances[to] += out;
-      const hist = document.getElementById('history');
-      hist.innerHTML = `<div class="flex justify-between py-1.5 border-b border-gray-800 text-left"><span>${amt} ${from} → ${out.toFixed(4)} ${to}</span><span class="text-green-400">Done</span></div>` + (hist.textContent === 'No swaps' ? '' : hist.innerHTML);
       document.getElementById('from-amt').value = '';
       calc();
       toast('Swap complete');
@@ -222,7 +174,6 @@
 
     fetchPrices();
     updateRate();
-    renderPrices();
   </script>
 </body>
 </html>
