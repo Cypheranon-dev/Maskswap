@@ -26,6 +26,7 @@
         <button data-tab="swap" class="tab tab-active pb-1">Swap</button>
         <button data-tab="perps" class="tab text-gray-500 pb-1">Perps</button>
         <button data-tab="bridge" class="tab text-gray-500 pb-1">Bridge</button>
+        <button data-tab="history" class="tab text-gray-500 pb-1">History</button>
       </div>
     </div>
 
@@ -121,11 +122,23 @@
       <a href="https://cypheranon-dev.github.io/CypherBridge/" class="btn w-full py-4 rounded-2xl text-center mt-auto">Open full Bridge</a>
     </div>
   </div>
+
+    <!-- History -->
+    <div id="view-history" class="hidden card rounded-2xl p-5 flex-1 flex flex-col">
+      <div class="text-lg font-semibold mb-4">Recent activity</div>
+      <div class="space-y-2 text-sm flex-1">
+        <div class="flex justify-between py-2 border-b border-gray-800"><span>Swap 500 CYP → 0.0208 cBTC</span><span class="text-xs text-gray-500">2h ago</span></div>
+        <div class="flex justify-between py-2 border-b border-gray-800"><span>Long 5x CYPHER-PERP</span><span class="text-xs text-gray-500">5h ago</span></div>
+        <div class="flex justify-between py-2"><span>Bridge 1.5 ETH → Cypher</span><span class="text-xs text-gray-500">1d ago</span></div>
+      </div>
+      <p class="text-xs text-gray-500 mt-4">All activity is local to this device until you share a viewing key.</p>
+    </div>
+
   <div id="toast" class="toast"></div>
   <script>
     function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
     function showTab(name){
-      ['swap','perps','bridge'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden', n!==name));
+      ['swap','perps','bridge','history'].forEach(n => document.getElementById('view-'+n).classList.toggle('hidden', n!==name));
       document.querySelectorAll('.tab').forEach(t => {
         t.classList.toggle('tab-active', t.dataset.tab===name);
         t.classList.toggle('text-gray-500', t.dataset.tab!==name);
